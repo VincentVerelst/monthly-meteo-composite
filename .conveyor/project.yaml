@@ -1,0 +1,15 @@
+docker:
+    path: "."
+name: monthly-meteo-composite
+id: a448721a-9731-44f8-96d7-bf2b32dfec03
+ide:
+    filename: ide.yaml
+resources:
+    path: resources
+streaming:
+    filename: streaming.yaml
+template: ""
+version: "0.3"
+workflows:
+    path: dags
+    version: 2
