@@ -13,9 +13,15 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[[tool.poetry.source]]
+name = "vito-artifactory"
+url = "https://artifactory.repo.vito.be/artifactory/api/pypi/ds-projects-pypi-local/simple/"
+priority = "explicit"
+
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.10,<4.0"
 openeo = "==0.42.0"
+mimir-utils = { version = "0.10.1", source = "vito-artifactory" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.4.0"
