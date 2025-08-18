@@ -6,9 +6,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ENV POETRY_VERSION=1.6.1 \
-    POETY_VIRTUALENVS_CREATE=true \
-    POETY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_VIRTUALENVS_CREATE=true \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
     POETRY_NO_INTERACTION=1
+
 RUN pip install "poetry==$POETRY_VERSION"
 
 WORKDIR /app
