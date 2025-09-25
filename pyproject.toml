@@ -2,7 +2,6 @@
 name = "monthly-meteo-composite"
 version = "0.0.1a1"
 description = "Generate monthly composites for AgERA5"
-readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Vincent Verelst" }]
 requires-python = ">=3.10,<4.0"
@@ -40,6 +39,9 @@ explicit = true
 [build-system]
 requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/test_job"]
