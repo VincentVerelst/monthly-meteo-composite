@@ -21,7 +21,7 @@ RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
 # Copy only project metadata first for better caching of deps
-COPY pyproject.toml README.md ./
+COPY pyproject.toml uv.lock README.md ./
 
 # Copy source (needed to install the project itself)
 COPY src ./src
@@ -46,5 +46,5 @@ COPY --from=builder /opt/venv /opt/venv
 RUN useradd -m -u 10001 appuser
 USER appuser
 
-# CMD ["python", "-c", "import monthly_meteo_composite as m; print('installed:', getattr(m,'__version__','unknown'))"]
+CMD ["python", "-c", "import monthly_meteo_composite as m; print('installed:', getattr(m,'__version__','unknown'))"]
 
