@@ -26,5 +26,5 @@ def test_job() -> None:
 
     s2.execute_batch(
         out_format="GTiff",
-        title="small test job for Conveyor",
+        title="small test j for Conveyor",
     )
