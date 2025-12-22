@@ -13,6 +13,8 @@ classifiers = [
 dependencies = [
   "openeo==0.42.0",
   "mimir-utils==0.10.1", 
+  "pystac==1.11.0",
+  "pystac-client==0.9.0",
 ]
 
 [project.urls]
@@ -44,5 +46,5 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/test_job"]
+packages = ["src/test_job", "src/meteo_composite", "src/postprocess"]
 
