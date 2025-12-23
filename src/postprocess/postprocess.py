@@ -47,6 +47,8 @@ ITEM_ASSETS = {
     },
 }
 
+_retry_session = None
+
 def _get_retry_session() -> requests.Session:
     """Get or create a requests session with retry logic."""
     global _retry_session
