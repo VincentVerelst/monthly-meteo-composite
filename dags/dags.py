@@ -9,11 +9,11 @@ default_args = {
     "owner": "Conveyor",
     "depends_on_past": False,
     "start_date": datetime(2025, 1, 1),
-    "email": [],
-    "email_on_failure": False,
+    "email": ["vincent.verelst@vito.be"],
+    "email_on_failure": True,
     "email_on_retry": False,
-    "retries": 0,
-    "retry_delay": timedelta(minutes=5),
+    "retries": 1,
+    "retry_delay": timedelta(minutes=60),
     "aws_role": aws_role,
 }
 
@@ -57,4 +57,6 @@ def create_container_job(
 
 
 with dag:
-    create_container_job("test_job")
+    stac_task = create_container_job("meteo_composite")
+    postprocess_task = create_container_job("postprocess")
+    stac_task >> postprocess_task  # First run stac_task, upon successfull completion run postprocess_task
