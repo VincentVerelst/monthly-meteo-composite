@@ -20,8 +20,9 @@ default_args = {
 dag = DAG(
     "monthly-meteo-composite",
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval="0 0 20 * *", # Run monthly on the 20th at 00:00 UTC, to ensure all data for the previous month is available
     max_active_runs=1,
+    catchup=False,
 )
 
 
