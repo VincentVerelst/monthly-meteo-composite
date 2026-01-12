@@ -248,4 +248,5 @@ def postprocess() -> None:
         auth=auth,
     )
     resp.raise_for_status()
+    logger.info(f"Uploaded collection response: {resp.status_code} - {resp.text}")
     logger.info("Successfully uploaded processed collection to STAC API.")
