@@ -22,9 +22,17 @@ def meteo_composite() -> None:
         client_id=client_id, client_secret=client_secret, provider_id="terrascope"
     )
     logger.info("Authentication successful.")
+
     # Define end date as the first day of the previous month, to make sure we only have full month composites
-    start_date = (date.today() - relativedelta(months=2)).replace(day=1).strftime("%Y-%m-%d")
-    end_date = (date.today() - relativedelta(months=1)).replace(day=1).strftime("%Y-%m-%d") 
+
+    if not date.today().day >= 20:
+        logger.info("Current date is before the 20th of the month, adjusting end date to two months ago.")
+        start_date = (date.today() - relativedelta(months=2)).replace(day=1).strftime("%Y-%m-%d")
+        end_date = (date.today() - relativedelta(months=1)).replace(day=1).strftime("%Y-%m-%d")
+    else:
+        logger.info("Current date is on or after the 20th of the month, using previous month as end date.")
+        start_date = (date.today() - relativedelta(months=1)).replace(day=1).strftime("%Y-%m-%d")
+        end_date = date.today().replace(day=1).strftime("%Y-%m-%d") 
 
     logger.info("Loading AGERA5 collection with end date %s", end_date)
     meteo = c.load_collection(
