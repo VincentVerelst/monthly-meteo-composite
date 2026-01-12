@@ -18,18 +18,19 @@ def meteo_composite() -> None:
     client_secret = product_parameters_api.get("openeo_client_secret")
 
     logger.info("Authenticating to OpenEO VITO backend...")
-    c = openeo.connect("openeo-dev.vito.be").authenticate_oidc_client_credentials(
+    c = openeo.connect("openeo.vito.be").authenticate_oidc_client_credentials(
         client_id=client_id, client_secret=client_secret, provider_id="terrascope"
     )
     logger.info("Authentication successful.")
     # Define end date as the first day of the previous month, to make sure we only have full month composites
+    start_date = (date.today() - relativedelta(months=2)).replace(day=1).strftime("%Y-%m-%d")
     end_date = (date.today() - relativedelta(months=1)).replace(day=1).strftime("%Y-%m-%d") 
 
     logger.info("Loading AGERA5 collection with end date %s", end_date)
     meteo = c.load_collection(
         collection_id="AGERA5",
         spatial_extent={'west': -180.0, 'south': -90.0, 'east': 180.0, 'north': 90.0, 'crs': 'EPSG:4326'},
-        temporal_extent=[None, end_date],
+        temporal_extent=[start_date, end_date],
         bands=['temperature-mean', 'precipitation-flux']
     )
 
@@ -66,7 +67,6 @@ def meteo_composite() -> None:
         "omit-derived-from-links": True,
         "export-workspace-enable-merge": True,
         "stac-version-experimental": "1.1",
-        # "image-name": "openeo-docker-ci.artifactory.vgt.vito.be/openeo-yarn:20251209-4431"
     }
 
     job = result_cube.create_job(
