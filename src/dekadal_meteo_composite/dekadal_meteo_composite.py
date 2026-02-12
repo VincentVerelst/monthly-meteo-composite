@@ -38,7 +38,7 @@ def dekadal_meteo_composite() -> None:
     meteo = c.load_collection(
         collection_id="AGERA5",
         spatial_extent={'west': -180.0, 'south': -90.0, 'east': 180.0, 'north': 90.0, 'crs': 'EPSG:4326'},
-        temporal_extent=[None, end_date],
+        temporal_extent=[start_date, end_date],
         bands=['temperature-mean', 'precipitation-flux']
     )
 
