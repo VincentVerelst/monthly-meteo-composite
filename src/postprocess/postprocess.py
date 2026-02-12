@@ -26,8 +26,6 @@ NEW_GEOMETRY = {
 
 NEW_BBOX = [-180.0, -90.0, 180.0, 90.0]
 
-COLLECTION_ID = "agera5_monthly_composite"
-
 ITEM_ASSETS = {
     "temperature-mean": {
         "type": "image/tiff; application=geotiff",
@@ -190,7 +188,7 @@ def process_collection(collection: pystac.Collection) -> dict:
 
     return collection_dict
 
-def postprocess() -> None:
+def postprocess(collection_id: str) -> None:
 
     logger.info("Starting postprocessing of STAC items.")
     parameters_api = mimir_utils.MimirClient.connect(
@@ -210,7 +208,7 @@ def postprocess() -> None:
     client = pystac_client.Client.open("https://stac.openeo.vito.be/")
 
     search = client.search(
-        collections=[COLLECTION_ID],
+        collections=[collection_id],
         method="POST",
     )
 
@@ -225,7 +223,7 @@ def postprocess() -> None:
 
     logger.info("Successfully processed all items. Uploading to STAC API.")
     resp = _get_retry_session().post(
-        url=f"https://stac.openeo.vito.be/collections/{COLLECTION_ID}/bulk_items",
+        url=f"https://stac.openeo.vito.be/collections/{collection_id}/bulk_items",
         json={
             "method": "upsert",
             "items": new_items,
@@ -238,12 +236,12 @@ def postprocess() -> None:
 
     logger.info("Fetching collection from STAC API.")
     collection = pystac.read_file(
-        f"https://stac.openeo.vito.be/collections/{COLLECTION_ID}")
+        f"https://stac.openeo.vito.be/collections/{collection_id}")
     logger.info("Processing collection.")
     new_collection = process_collection(collection)
     logger.info("Uploading processed collection to STAC API.")
     resp = _get_retry_session().put(
-        url=f"https://stac.openeo.vito.be/collections/{COLLECTION_ID}",
+        url=f"https://stac.openeo.vito.be/collections/{collection_id}",
         json=new_collection,
         auth=auth,
     )

@@ -28,27 +28,20 @@ dag = DAG(
 
 def create_container_job(
     job: str,
+    task_id: str | None = None,
     instance_type: str = "cx.xlarge",
     instance_life_cycle: str = "spot",
     trigger_rule: str = "all_success",
+    collection_id: str | None = None,
 ) -> ConveyorContainerOperatorV2:
-    """
-    Create a ConveyorContainerOperatorV2 for the given job.
-    Args:
-        job: The name of the job to run. Should be the name of the Python module containing the job's main function.
-        instance_type (str): The type of cloud instance to use. (e.g. cx.micro (1CPU), cx.large (2CPU), cx.xlarge (4CPU))
-        instance_life_cycle (str): The lifecycle of the cloud instance (spot or on-demand).
-        trigger_rule: The Airflow trigger rule for the task.
-
-    Returns:
-        A ConveyorContainerOperatorV2 for the given job.
-    """
-
     arguments = ["-m", f"{job}.main", "--env", "{{ macros.conveyor.env() }}"]
+
+    if collection_id:
+        arguments.extend(["--collection-id", collection_id])
 
     return ConveyorContainerOperatorV2(
         dag=dag,
-        task_id=job,
+        task_id=task_id or job,   # this needs to be unique per task, so we use the job name as default, but allow overriding it if needed (e.g. for the postprocess task which needs the collection_id as argument and thus cannot use the same task_id)
         cmds=["python"],
         arguments=arguments,
         trigger_rule=trigger_rule,
@@ -58,6 +51,10 @@ def create_container_job(
 
 
 with dag:
-    stac_task = create_container_job("meteo_composite")
-    postprocess_task = create_container_job("postprocess")
-    stac_task >> postprocess_task  # First run stac_task, upon successfull completion run postprocess_task
+    monthly_composite_task = create_container_job("monthly_meteo_composite")
+    monthly_postprocess_task = create_container_job("postprocess", task_id="monthly_postprocess", collection_id="agera5_monthly_composite")
+    monthly_composite_task >> monthly_postprocess_task  # First run monthly_composite_task, upon successful completion run monthly_postprocess_task
+
+    dekadal_composite_task = create_container_job("dekadal_meteo_composite")
+    dekadal_postprocess_task = create_container_job("postprocess", task_id="dekadal_postprocess", collection_id="agera5_dekadal_composite")
+    dekadal_composite_task >> dekadal_postprocess_task  # First run dekadal_composite_task, upon successful completion run dekadal_postprocess_task
