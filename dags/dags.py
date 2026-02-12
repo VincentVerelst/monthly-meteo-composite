@@ -34,7 +34,7 @@ def create_container_job(
     trigger_rule: str = "all_success",
     collection_id: str | None = None,
 ) -> ConveyorContainerOperatorV2:
-    arguments = ["-m", f"{job}.main", "--env", "{{ macros.conveyor.env() }}"]
+    arguments = ["-m", f"{job}.main"]
 
     if collection_id:
         arguments.extend(["--collection-id", collection_id])
