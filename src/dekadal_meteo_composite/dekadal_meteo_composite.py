@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-def meteo_composite() -> None:
+def dekadal_meteo_composite() -> None:
     parameters_api = mimir_utils.MimirClient.connect(
         data_product="monthly-meteo-composite", environment="experimentation"
     )
@@ -38,17 +38,17 @@ def meteo_composite() -> None:
     meteo = c.load_collection(
         collection_id="AGERA5",
         spatial_extent={'west': -180.0, 'south': -90.0, 'east': 180.0, 'north': 90.0, 'crs': 'EPSG:4326'},
-        temporal_extent=[start_date, end_date],
+        temporal_extent=[None, end_date],
         bands=['temperature-mean', 'precipitation-flux']
     )
 
     meteo_temp = meteo.filter_bands(bands=["temperature-mean"])
     meteo_temp = meteo_temp.aggregate_temporal_period(
-        period="month", reducer="mean"
+        period="dekad", reducer="mean"
     )
     meteo_prec = meteo.filter_bands(bands=["precipitation-flux"])
     meteo_prec = meteo_prec.aggregate_temporal_period(
-        period="month", reducer="sum"
+        period="dekad", reducer="sum"
     )
 
     meteo = meteo_temp.merge_cubes(meteo_prec)
@@ -65,7 +65,7 @@ def meteo_composite() -> None:
 
     result_cube = result_cube.export_workspace(
         workspace="worldcereal-stac-openeo-agera5-monthly-s3-workspace", 
-        merge="agera5_monthly_composite"
+        merge="agera5_dekadal_composite"
     )
 
     job_options = {
@@ -79,7 +79,7 @@ def meteo_composite() -> None:
 
     job = result_cube.create_job(
         job_options=job_options,
-        title="AGERA5 Monthly Composite Job",
+        title="AGERA5 Dekadal Composite Job",
     )
 
     job.start_and_wait()
