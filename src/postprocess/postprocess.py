@@ -1,5 +1,6 @@
+import logging
+
 import mimir_utils
-import openeo
 import pystac
 import pystac_client
 import requests
@@ -8,11 +9,8 @@ from openeo.rest.auth.oidc import (
     OidcProviderInfo,
     OidcResourceOwnerPasswordAuthenticator,
 )
-from requests.auth import AuthBase
-import logging
-from datetime import date
-from dateutil.relativedelta import relativedelta
 from requests.adapters import HTTPAdapter
+from requests.auth import AuthBase
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
@@ -26,26 +24,8 @@ NEW_GEOMETRY = {
 
 NEW_BBOX = [-180.0, -90.0, 180.0, 90.0]
 
-ITEM_ASSETS = {
-    "temperature-mean": {
-        "type": "image/tiff; application=geotiff",
-        "title": "temperature-mean",
-        "description": "temperature-mean",
-        "roles": ["data"],
-        "eo:bands": [{"name": "temperature-mean", "description": "temperature-mean"}],
-    },
-    "precipitation-flux": {
-        "type": "image/tiff; application=geotiff",
-        "title": "precipitation-flux",
-        "description": "precipitation-flux",
-        "roles": ["data"],
-        "eo:bands": [
-            {"name": "precipitation-flux", "description": "precipitation-flux"}
-        ],
-    },
-}
-
 _retry_session = None
+
 
 def _get_retry_session() -> requests.Session:
     """Get or create a requests session with retry logic."""
@@ -73,6 +53,7 @@ def _get_retry_session() -> requests.Session:
 
     _retry_session = session
     return _retry_session
+
 
 class VitoStacApiAuthentication(AuthBase):
     """Class that handles authentication for the VITO STAC API. https://stac.openeo.vito.be/"""
@@ -121,38 +102,12 @@ def process_item(item: pystac.Item) -> dict:
     item.bbox = NEW_BBOX
     item.stac_extensions = [
         "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
-        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
     ]
-
-    item.properties["proj:geometry"] = {
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [180.05, -90.05],
-                [180.05, 90.05],
-                [-180.05, 90.05],
-                [-180.05, -90.05],
-                [180.05, -90.05],
-            ]
-        ],
-    }
-    item.properties["proj:bbox"] = [-180.05, -90.05, 180.05, 90.05]
-    item.properties["proj:code"] = "EPSG:4326"
-    item.properties["proj:shape"] = [1801, 3601]
-    item.properties["proj:transform"] = [0.1, 0, -180.05, 0, -0.1, 90.05]
 
     for key in list(item.assets.keys()):
         asset = item.assets.pop(key)
         asset.href = asset.href.replace("s3://", "https://s3.waw3-1.cloudferro.com/")
 
-        asset.extra_fields["geometry"] = NEW_GEOMETRY
-        asset.extra_fields["raster:bands"] = [{"nodata": 65535, "data_type": "uint16"}]
-        asset.extra_fields['bbox'] = NEW_BBOX
-        asset.extra_fields['geometry'] = NEW_GEOMETRY
-
-        if "bands" in asset.extra_fields:
-            asset.extra_fields["eo:bands"] = asset.extra_fields.pop("bands")
         if "precipitation" in key:
             item.assets["precipitation-flux"] = asset
         elif "temperature" in key:
@@ -164,32 +119,8 @@ def process_item(item: pystac.Item) -> dict:
     item_dict["stac_version"] = "1.1.0"
     return item_dict
 
-def process_collection(collection: pystac.Collection) -> dict:
-    collection.stac_extensions = [
-        "https://stac-extensions.github.io/projection/v2.0.0/schema.json",
-        "https://stac-extensions.github.io/raster/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/eo/v1.1.0/schema.json",
-    ]
-
-    collection.links = []
-
-    collection_dict = collection.to_dict()
-    collection_dict["stac_version"] = "1.1.0"
-
-    end_date = (date.today() - relativedelta(months=1)).replace(day=1).strftime("%Y-%m-%d")
-    collection_dict["extent"]["temporal"]["interval"] = [["2015-01-01T00:00:00Z", f"{end_date}T23:59:59Z"]]
-
-    collection_dict["item_assets"] = ITEM_ASSETS
-
-    collection_dict['_auth'] = {
-                "read": ["anonymous"],
-                "write": ["stac-openeo-admin", "stac-openeo-editor"],
-            }
-
-    return collection_dict
 
 def postprocess(collection_id: str) -> None:
-
     logger.info("Starting postprocessing of STAC items.")
     parameters_api = mimir_utils.MimirClient.connect(
         data_product="monthly-meteo-composite", environment="experimentation"
@@ -233,18 +164,3 @@ def postprocess(collection_id: str) -> None:
 
     resp.raise_for_status()
     logger.info("Successfully uploaded processed items to STAC API.")
-
-    logger.info("Fetching collection from STAC API.")
-    collection = pystac.read_file(
-        f"https://stac.openeo.vito.be/collections/{collection_id}")
-    logger.info("Processing collection.")
-    new_collection = process_collection(collection)
-    logger.info("Uploading processed collection to STAC API.")
-    resp = _get_retry_session().put(
-        url=f"https://stac.openeo.vito.be/collections/{collection_id}",
-        json=new_collection,
-        auth=auth,
-    )
-    resp.raise_for_status()
-    logger.info(f"Uploaded collection response: {resp.status_code} - {resp.text}")
-    logger.info("Successfully uploaded processed collection to STAC API.")
