@@ -11,16 +11,16 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 def dekadal_meteo_composite() -> None:
     parameters_api = mimir_utils.MimirClient.connect(
-        data_product="monthly-meteo-composite", environment="experimentation"
+        data_product="monthly-meteo-composite", environment="publishing"
     )
     product_parameters_api = parameters_api.aws.parameters.data_product
 
     client_id = product_parameters_api.get("openeo_client_id")
     client_secret = product_parameters_api.get("openeo_client_secret")
 
-    logger.info("Authenticating to OpenEO VITO backend...")
-    c = openeo.connect("openeo.vito.be").authenticate_oidc_client_credentials(
-        client_id=client_id, client_secret=client_secret, provider_id="terrascope"
+    logger.info("Authenticating to OpenEO Terrascope backend...")
+    c = openeo.connect("openeo.terrascope.be").authenticate_oidc_client_credentials(
+        client_id=client_id, client_secret=client_secret
     )
     logger.info("Authentication successful.")
 
