@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 def monthly_meteo_composite() -> None:
     parameters_api = mimir_utils.MimirClient.connect(
-        data_product="monthly-meteo-composite", environment="publishing"
+        data_product="monthly-meteo-composite", environment="publishing3"
     )
     product_parameters_api = parameters_api.aws.parameters.data_product
 
