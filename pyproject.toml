@@ -12,7 +12,7 @@ classifiers = [
 ]
 dependencies = [
   "openeo==0.42.0",
-  "mimir-utils==0.10.1", 
+  "mimir-utils", 
   "pystac==1.11.0",
   "pystac-client==0.9.0",
 ]
