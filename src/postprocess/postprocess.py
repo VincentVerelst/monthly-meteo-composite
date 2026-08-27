@@ -123,7 +123,7 @@ def process_item(item: pystac.Item) -> dict:
 def postprocess(collection_id: str) -> None:
     logger.info("Starting postprocessing of STAC items.")
     parameters_api = mimir_utils.MimirClient.connect(
-        data_product="monthly-meteo-composite", environment="experimentation"
+        data_product="monthly-meteo-composite", environment="publishing"
     )
     product_parameters_api = parameters_api.aws.parameters.data_product
 
